@@ -326,7 +326,8 @@ func ParsePeers(cfg *ini.File, peers *[]PeerConfig) error {
 			peer.PreSharedKey = value
 		}
 
-		if value, err := parseString(section, "Endpoint"); err == nil {
+		if sectionKey, err := section.GetKey("Endpoint"); err == nil {
+			value := sectionKey.String()
 			decoded, err = resolveIPPAndPort(strings.ToLower(value))
 			if err != nil {
 				return err
