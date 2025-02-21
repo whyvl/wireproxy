@@ -3,6 +3,7 @@ package wireproxy
 import (
 	"bufio"
 	"bytes"
+	"crypto/tls"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -21,6 +22,7 @@ type HTTPServer struct {
 	dial func(network, address string) (net.Conn, error)
 
 	authRequired bool
+	tlsRequired  bool
 }
 
 func (s *HTTPServer) authenticate(req *http.Request) (int, error) {
@@ -145,9 +147,22 @@ func (s *HTTPServer) serve(conn net.Conn) {
 	}()
 }
 
+func (s *HTTPServer) listen(network, addr string) (net.Listener, error) {
+	if s.tlsRequired {
+		cert, err := tls.LoadX509KeyPair(s.config.CertFile, s.config.KeyFile)
+		if err != nil {
+			return nil, err
+		}
+
+		return tls.Listen(network, addr, &tls.Config{Certificates: []tls.Certificate{cert}})
+	}
+
+	return net.Listen(network, addr)
+}
+
 // ListenAndServe is used to create a listener and serve on it
 func (s *HTTPServer) ListenAndServe(network, addr string) error {
-	server, err := net.Listen(network, addr)
+	server, err := s.listen(network, addr)
 	if err != nil {
 		return fmt.Errorf("listen tcp failed: %w", err)
 	}

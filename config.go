@@ -57,6 +57,8 @@ type HTTPConfig struct {
 	BindAddress string
 	Username    string
 	Password    string
+	CertFile    string
+	KeyFile     string
 }
 
 type Configuration struct {
@@ -431,6 +433,12 @@ func parseHTTPConfig(section *ini.Section) (RoutineSpawner, error) {
 
 	password, _ := parseString(section, "Password")
 	config.Password = password
+
+	certFile, _ := parseString(section, "CertFile")
+	config.CertFile = certFile
+
+	keyFile, _ := parseString(section, "KeyFile")
+	config.KeyFile = keyFile
 
 	return config, nil
 }
